@@ -60,23 +60,12 @@
             position: relative;
         }
 
-        /* Ludzik */
-        #player {
-            width: 18px;
-            height: 18px;
-            background-color: #88c0d0; /* Niebieski */
-            border: 1px solid #4c566a;
-            position: absolute;
-            top: 0;
-            left: 0;
-            transition: top 0.1s, left 0.1s; /* Płynny ruch */
-        }
-
         /* Drzewo */
         .tree {
             width: 18px;
             height: 18px;
-            background-color: #7a4b1f; /* Brązowy */
+            background-image: url('images/woodtexture1.png'); /* Tekstura drzewa */
+            background-size: cover; 
             border: 1px solid #4c566a;
             position: absolute;
             transition: opacity 0.3s;
@@ -86,10 +75,24 @@
         .stone {
             width: 18px;
             height: 18px;
-            background-color: #4c4c4c; /* Szary */
+            background-image: url('images/stonetexture.png'); /* Tekstura kamienia */
+            background-size: cover;
             border: 1px solid #4c566a;
             position: absolute;
             transition: opacity 0.3s;
+        }
+
+        /* Ludzik */
+        #player {
+            width: 18px;
+            height: 18px;
+            background-image: url('images/player.png'); /* Tekstura gracza */
+            background-size: cover;
+            border: 1px solid #4c566a;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: top 0.1s, left 0.1s; /* Płynny ruch */
         }
 
         /* Ekwipunek */
@@ -212,13 +215,16 @@
             for (let i = 0; i < 5; i++) {
                 const x = Math.floor(Math.random() * 20);
                 const y = Math.floor(Math.random() * 20);
+
                 const tree = document.createElement("div");
                 tree.classList.add("tree");
-                tree.style.left = `${x * gridSize}px`;
-                tree.style.top = `${y * gridSize}px`;
                 tree.dataset.x = x;
                 tree.dataset.y = y;
-                tree.dataset.clicks = 3; // Licznik kliknięć do zniszczenia drzewa
+                tree.dataset.clicks = 3; // Liczba kliknięć do zniszczenia
+
+                tree.style.top = `${y * gridSize}px`;
+                tree.style.left = `${x * gridSize}px`;
+
                 gameBoard.appendChild(tree);
                 trees.push(tree);
             }
@@ -227,69 +233,26 @@
             for (let i = 0; i < 5; i++) {
                 const x = Math.floor(Math.random() * 20);
                 const y = Math.floor(Math.random() * 20);
+
                 const stone = document.createElement("div");
                 stone.classList.add("stone");
-                stone.style.left = `${x * gridSize}px`;
-                stone.style.top = `${y * gridSize}px`;
                 stone.dataset.x = x;
                 stone.dataset.y = y;
-                stone.dataset.clicks = 5; // Licznik kliknięć do zniszczenia kamienia
+                stone.dataset.clicks = 5; // Liczba kliknięć do zniszczenia
+
+                stone.style.top = `${y * gridSize}px`;
+                stone.style.left = `${x * gridSize}px`;
+
                 gameBoard.appendChild(stone);
                 stones.push(stone);
             }
         }
 
-        // Ruch gracza
-        document.addEventListener("keydown", (event) => {
-            const key = event.key.toLowerCase();
-            switch (key) {
-                case "w": // Góra
-                    if (playerPosition.y > 0 && !isObjectAt(playerPosition.x, playerPosition.y - 1)) {
-                        playerPosition.y--;
-                    }
-                    break;
-                case "s": // Dół
-                    if (playerPosition.y < 19 && !isObjectAt(playerPosition.x, playerPosition.y + 1)) {
-                        playerPosition.y++;
-                    }
-                    break;
-                case "a": // Lewo
-                    if (playerPosition.x > 0 && !isObjectAt(playerPosition.x - 1, playerPosition.y)) {
-                        playerPosition.x--;
-                    }
-                    break;
-                case "d": // Prawo
-                    if (playerPosition.x < 19 && !isObjectAt(playerPosition.x + 1, playerPosition.y)) {
-                        playerPosition.x++;
-                    }
-                    break;
-                case "q": // Kopanie (niszczenie)
-                    destroyObjectNearby();
-                    break;
-            }
-            updatePlayerPosition();
-        });
-
-        // Funkcja sprawdzająca, czy na danej pozycji jest obiekt
-        function isObjectAt(x, y) {
-            return (
-                trees.some(tree => tree.dataset.x == x && tree.dataset.y == y) ||
-                stones.some(stone => stone.dataset.x == x && stone.dataset.y == y)
-            );
-        }
-
-        // Funkcja aktualizująca pozycję gracza
-        function updatePlayerPosition() {
-            player.style.top = `${playerPosition.y * gridSize}px`;
-            player.style.left = `${playerPosition.x * gridSize}px`;
-        }
-
-        // Funkcja zniszczenia obiektu
         function destroyObjectNearby() {
             const playerX = playerPosition.x;
             const playerY = playerPosition.y;
 
-            // Sprawdź, czy gracz jest obok drzewa lub kamienia
+            // Sprawdzenie, czy gracz jest obok drzewa lub kamienia
             trees.forEach((tree) => {
                 if (Math.abs(playerX - tree.dataset.x) <= 1 && Math.abs(playerY - tree.dataset.y) <= 1) {
                     if (tree.dataset.clicks > 0) {
@@ -318,47 +281,6 @@
                 }
             });
         }
-
-        // Dodanie kontroli dotykowej na telefonie
-        const controls = {
-            left: document.getElementById("left"),
-            up: document.getElementById("up"),
-            right: document.getElementById("right"),
-            down: document.getElementById("down"),
-            dig: document.getElementById("dig"),
-        };
-
-        controls.left.addEventListener("click", () => {
-            if (playerPosition.x > 0 && !isObjectAt(playerPosition.x - 1, playerPosition.y)) {
-                playerPosition.x--;
-                updatePlayerPosition();
-            }
-        });
-
-        controls.up.addEventListener("click", () => {
-            if (playerPosition.y > 0 && !isObjectAt(playerPosition.x, playerPosition.y - 1)) {
-                playerPosition.y--;
-                updatePlayerPosition();
-            }
-        });
-
-        controls.right.addEventListener("click", () => {
-            if (playerPosition.x < 19 && !isObjectAt(playerPosition.x + 1, playerPosition.y)) {
-                playerPosition.x++;
-                updatePlayerPosition();
-            }
-        });
-
-        controls.down.addEventListener("click", () => {
-            if (playerPosition.y < 19 && !isObjectAt(playerPosition.x, playerPosition.y + 1)) {
-                playerPosition.y++;
-                updatePlayerPosition();
-            }
-        });
-
-        controls.dig.addEventListener("click", () => {
-            destroyObjectNearby();
-        });
 
         // Inicjalizacja planszy
         generateObjects();
