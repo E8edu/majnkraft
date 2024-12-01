@@ -282,6 +282,57 @@
             });
         }
 
+        // Ruch gracza za pomocą WSAD
+        function movePlayer(event) {
+            if (event.key === "w" && playerPosition.y > 0) {
+                playerPosition.y--;
+            } else if (event.key === "s" && playerPosition.y < 19) {
+                playerPosition.y++;
+            } else if (event.key === "a" && playerPosition.x > 0) {
+                playerPosition.x--;
+            } else if (event.key === "d" && playerPosition.x < 19) {
+                playerPosition.x++;
+            }
+
+            // Przemieszczenie gracza na planszy
+            player.style.top = `${playerPosition.y * gridSize}px`;
+            player.style.left = `${playerPosition.x * gridSize}px`;
+        }
+
+        // Ruch gracza (mobile)
+        function movePlayerTouch(id) {
+            if (id === 'up' && playerPosition.y > 0) {
+                playerPosition.y--;
+            } else if (id === 'down' && playerPosition.y < 19) {
+                playerPosition.y++;
+            } else if (id === 'left' && playerPosition.x > 0) {
+                playerPosition.x--;
+            } else if (id === 'right' && playerPosition.x < 19) {
+                playerPosition.x++;
+            }
+
+            player.style.top = `${playerPosition.y * gridSize}px`;
+            player.style.left = `${playerPosition.x * gridSize}px`;
+        }
+
+        // Event listener dla WSAD
+        window.addEventListener("keydown", movePlayer);
+
+        // Event listener dla dotykowych przycisków
+        const touchControls = document.querySelectorAll(".touch-control");
+        touchControls.forEach(control => {
+            control.addEventListener('click', (e) => {
+                movePlayerTouch(e.target.id);
+            });
+        });
+
+        // Niszcz obiekt przyciskiem Q
+        window.addEventListener("keydown", function (event) {
+            if (event.key === "q") {
+                destroyObjectNearby();
+            }
+        });
+
         // Inicjalizacja planszy
         generateObjects();
     </script>
