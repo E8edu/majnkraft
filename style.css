@@ -1,20 +1,20 @@
-/* Drzewo z teksturą */
+/* Drzewo z zewnętrzną teksturą */
 .tree {
     width: 18px;
     height: 18px;
-    background-image: url('images/woodtexture1.png'); /* Tekstura drewna */
-    background-size: cover;  /* Dopasowanie tekstury do rozmiaru */
+    background-image: url('https://media.forgecdn.net/avatars/thumbnails/719/919/256/256/638076340205799098.png'); /* Tekstura drzewa */
+    background-size: cover; 
     border: 1px solid #4c566a;
     position: absolute;
     transition: opacity 0.3s;
 }
 
-/* Kamień z teksturą */
+/* Kamień z zewnętrzną teksturą */
 .stone {
     width: 18px;
     height: 18px;
-    background-image: url('images/stonetexture.png'); /* Tekstura kamienia */
-    background-size: cover;  /* Dopasowanie tekstury do rozmiaru */
+    background-image: url('https://static.planetminecraft.com/files/image/minecraft/texture-pack/2021/363/14104498-stone_xl.webp'); /* Tekstura kamienia */
+    background-size: cover;
     border: 1px solid #4c566a;
     position: absolute;
     transition: opacity 0.3s;
@@ -25,10 +25,11 @@
     width: 18px;
     height: 18px;
     background-image: url('images/player.png'); /* Tekstura gracza (jeśli chcesz) */
-    background-size: cover;  /* Dopasowanie tekstury do rozmiaru */
+    background-size: cover;
     border: 1px solid #4c566a;
     position: absolute;
     top: 0;
     left: 0;
     transition: top 0.1s, left 0.1s; /* Płynny ruch */
 }
+
