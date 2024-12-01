@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale: 1.0">
     <title>Local Game</title>
     <link rel="stylesheet" href="style.css">
     <style>
@@ -59,6 +59,16 @@
             grid-template-rows: repeat(20, 20px);
             border: 2px solid #4c566a;
             position: relative;
+        }
+
+        /* Ziemia */
+        .ground {
+            width: 18px;
+            height: 18px;
+            background-image: url('https://media.forgecdn.net/avatars/thumbnails/602/499/256/256/637983096796926072.png');
+            background-size: cover;
+            border: 1px solid #4c566a;
+            position: absolute;
         }
 
         /* Drzewo z zewnętrzną teksturą */
@@ -184,6 +194,7 @@
     <script>
         // Pozycja gracza
         let playerPosition = { x: 0, y: 0 };
+        let playerHealth = 10; // Gracz ma 10 HP
 
         // Wymiary kratki
         const gridSize = 20; // Piksele
@@ -203,13 +214,21 @@
         let woodCount = 0;
         let stoneCount = 0;
 
-        // Dodanie drzew i kamieni do planszy
-        let trees = [];
-        let stones = [];
+        // Mob zombie
+        let zombies = [];
 
+        // Funkcja generująca obiekty na planszy
         function generateObjects() {
-            trees = [];
-            stones = [];
+            // Dodanie ziemi (cała plansza)
+            for (let x = 0; x < 20; x++) {
+                for (let y = 0; y < 20; y++) {
+                    const ground = document.createElement("div");
+                    ground.classList.add("ground");
+                    ground.style.top = `${y * gridSize}px`;
+                    ground.style.left = `${x * gridSize}px`;
+                    gameBoard.appendChild(ground);
+                }
+            }
 
             // Dodanie drzew (5 drzew)
             for (let i = 0; i < 5; i++) {
@@ -226,7 +245,6 @@
                 tree.style.left = `${x * gridSize}px`;
 
                 gameBoard.appendChild(tree);
-                trees.push(tree);
             }
 
             // Dodanie kamieni (5 kamieni)
@@ -244,45 +262,69 @@
                 stone.style.left = `${x * gridSize}px`;
 
                 gameBoard.appendChild(stone);
-                stones.push(stone);
             }
+
+            // Tworzenie pierwszego zombie
+            spawnZombie();
         }
 
-        function destroyObjectNearby() {
-            const playerX = playerPosition.x;
-            const playerY = playerPosition.y;
+        // Funkcja do generowania zombie
+        function spawnZombie() {
+            const zombie = document.createElement("div");
+            zombie.classList.add("zombie");
+            zombie.style.backgroundImage = "url('https://minecraftfaces.com/wp-content/bigfaces/big-zombie-face.png')";
+            zombie.style.backgroundSize = "cover";
+            zombie.style.width = "18px";
+            zombie.style.height = "18px";
+            zombie.dataset.hp = 5;
+            zombie.dataset.x = Math.floor(Math.random() * 20);
+            zombie.dataset.y = Math.floor(Math.random() * 20);
 
-            // Sprawdzenie, czy gracz jest obok drzewa lub kamienia
-            trees.forEach((tree) => {
-                if (Math.abs(playerX - tree.dataset.x) <= 1 && Math.abs(playerY - tree.dataset.y) <= 1) {
-                    if (tree.dataset.clicks > 0) {
-                        tree.dataset.clicks--;
-                        console.log(`Kliknięto drzewo! Pozostało ${tree.dataset.clicks} kliknięć.`);
-                    }
-                    if (tree.dataset.clicks == 0) {
-                        tree.style.opacity = 0;
-                        woodCount++;
-                        woodItem.innerText = `Wood: ${woodCount}`;
+            zombie.style.top = `${zombie.dataset.y * gridSize}px`;
+            zombie.style.left = `${zombie.dataset.x * gridSize}px`;
+
+            zombies.push(zombie);
+            gameBoard.appendChild(zombie);
+        }
+
+        // Funkcja do poruszania zombie w stronę gracza
+        function moveZombies() {
+            zombies.forEach(zombie => {
+                const zombieX = parseInt(zombie.dataset.x);
+                const zombieY = parseInt(zombie.dataset.y);
+
+                const playerX = playerPosition.x;
+                const playerY = playerPosition.y;
+
+                if (zombie.dataset.hp > 0) {
+                    // Poruszanie w stronę gracza
+                    if (zombieX < playerX) zombie.dataset.x = zombieX + 1;
+                    else if (zombieX > playerX) zombie.dataset.x = zombieX - 1;
+
+                    if (zombieY < playerY) zombie.dataset.y = zombieY + 1;
+                    else if (zombieY > playerY) zombie.dataset.y = zombieY - 1;
+
+                    // Przemieszczanie zombie na planszy
+                    zombie.style.top = `${zombie.dataset.y * gridSize}px`;
+                    zombie.style.left = `${zombie.dataset.x * gridSize}px`;
+                }
+            });
+        }
+
+        // Uderzenie w zombie
+        function hitZombie() {
+            zombies.forEach(zombie => {
+                if (Math.abs(playerPosition.x - zombie.dataset.x) <= 1 && Math.abs(playerPosition.y - zombie.dataset.y) <= 1) {
+                    zombie.dataset.hp--;
+                    if (zombie.dataset.hp <= 0) {
+                        zombie.remove(); // Usuwamy zombie, jeśli zostało zabite
+                        zombies = zombies.filter(z => z !== zombie);
                     }
                 }
             });
-
-            stones.forEach((stone) => {
-                if (Math.abs(playerX - stone.dataset.x) <= 1 && Math.abs(playerY - stone.dataset.y) <= 1) {
-                    if (stone.dataset.clicks > 0) {
-                        stone.dataset.clicks--;
-                        console.log(`Kliknięto kamień! Pozostało ${stone.dataset.clicks} kliknięć.`);
-                    }
-                    if (stone.dataset.clicks == 0) {
-                        stone.style.opacity = 0;
-                        stoneCount++;
-                        stoneItem.innerText = `Stone: ${stoneCount}`;
-                    }
-                }
-            });
         }
 
-        // Ruch gracza za pomocą WSAD
+        // Poruszanie graczem (WSAD)
         function movePlayer(event) {
             if (event.key === "w" && playerPosition.y > 0) {
                 playerPosition.y--;
@@ -294,12 +336,45 @@
                 playerPosition.x++;
             }
 
-            // Przemieszczenie gracza na planszy
+            // Przemieszczenie gracza
             player.style.top = `${playerPosition.y * gridSize}px`;
             player.style.left = `${playerPosition.x * gridSize}px`;
         }
 
-        // Ruch gracza (mobile)
+        // Niszcz obiekty przy Q
+        function destroyObjectNearby() {
+            // Drzewa
+            const trees = document.querySelectorAll(".tree");
+            trees.forEach(tree => {
+                if (Math.abs(playerPosition.x - tree.dataset.x) <= 1 && Math.abs(playerPosition.y - tree.dataset.y) <= 1) {
+                    if (tree.dataset.clicks > 0) {
+                        tree.dataset.clicks--;
+                    }
+                    if (tree.dataset.clicks == 0) {
+                        tree.style.opacity = 0;
+                        woodCount++;
+                        woodItem.innerText = `Wood: ${woodCount}`;
+                    }
+                }
+            });
+
+            // Kamienie
+            const stones = document.querySelectorAll(".stone");
+            stones.forEach(stone => {
+                if (Math.abs(playerPosition.x - stone.dataset.x) <= 1 && Math.abs(playerPosition.y - stone.dataset.y) <= 1) {
+                    if (stone.dataset.clicks > 0) {
+                        stone.dataset.clicks--;
+                    }
+                    if (stone.dataset.clicks == 0) {
+                        stone.style.opacity = 0;
+                        stoneCount++;
+                        stoneItem.innerText = `Stone: ${stoneCount}`;
+                    }
+                }
+            });
+        }
+
+        // Ruch gracza (dotykowy)
         function movePlayerTouch(id) {
             if (id === 'up' && playerPosition.y > 0) {
                 playerPosition.y--;
@@ -315,10 +390,10 @@
             player.style.left = `${playerPosition.x * gridSize}px`;
         }
 
-        // Event listener dla WSAD
+        // Obsługuje ruchy gracza
         window.addEventListener("keydown", movePlayer);
 
-        // Event listener dla dotykowych przycisków
+        // Obsługuje dotykowe przyciski
         const touchControls = document.querySelectorAll(".touch-control");
         touchControls.forEach(control => {
             control.addEventListener('click', (e) => {
@@ -326,15 +401,23 @@
             });
         });
 
-        // Niszcz obiekt przyciskiem Q
+        // Obsługuje kliknięcie Q do niszczenia
         window.addEventListener("keydown", function (event) {
             if (event.key === "q") {
                 destroyObjectNearby();
+                hitZombie(); // Sprawdzamy, czy gracz uderzył w zombie
             }
         });
 
-        // Inicjalizacja planszy
+        // Generowanie obiektów na planszy
         generateObjects();
+
+        // Ruchy zombie
+        setInterval(moveZombies, 1000);
+
+        // Sprawdzanie interakcji co 1 sekundę
+        setInterval(hitZombie, 1000);
+
     </script>
 </body>
 </html>
