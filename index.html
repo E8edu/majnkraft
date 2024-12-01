@@ -256,42 +256,38 @@
 
         // Funkcja generująca obiekty na planszy
         function generateObjects() {
-            // Dodanie ziemi (cała plansza)
+            // Dodanie ziemi (cała plansza wypełniona)
             for (let x = 0; x < 20; x++) {
                 for (let y = 0; y < 20; y++) {
                     const ground = document.createElement("div");
                     ground.classList.add("ground");
                     ground.dataset.x = x;
                     ground.dataset.y = y;
-
                     ground.style.top = `${y * gridSize}px`;
                     ground.style.left = `${x * gridSize}px`;
-
                     gameBoard.appendChild(ground);
                 }
             }
 
-            // Tworzenie drzewa
+            // Dodanie drzewa
             const tree = document.createElement("div");
             tree.classList.add("tree");
             tree.dataset.x = 5;
             tree.dataset.y = 5;
-            tree.dataset.clicks = 3;
             tree.style.top = `${5 * gridSize}px`;
             tree.style.left = `${5 * gridSize}px`;
             gameBoard.appendChild(tree);
 
-            // Tworzenie kamienia
+            // Dodanie kamienia
             const stone = document.createElement("div");
             stone.classList.add("stone");
             stone.dataset.x = 10;
             stone.dataset.y = 10;
-            stone.dataset.clicks = 5;
             stone.style.top = `${10 * gridSize}px`;
             stone.style.left = `${10 * gridSize}px`;
             gameBoard.appendChild(stone);
 
-            // Tworzenie pierwszego zombie
+            // Spawnowanie zombie
             spawnZombie();
         }
 
@@ -306,17 +302,82 @@
             zombie.dataset.hp = 5;
             zombie.dataset.x = Math.floor(Math.random() * 20);
             zombie.dataset.y = Math.floor(Math.random() * 20);
-
             zombie.style.top = `${zombie.dataset.y * gridSize}px`;
             zombie.style.left = `${zombie.dataset.x * gridSize}px`;
-
             zombies.push(zombie);
             gameBoard.appendChild(zombie);
         }
 
-        // Funkcja niszczenia obiektów
+        // Funkcja do poruszania gracza
+        function movePlayer(event) {
+            if (event.key === "w" && playerPosition.y > 0) {
+                playerPosition.y--;
+            } else if (event.key === "s" && playerPosition.y < 19) {
+                playerPosition.y++;
+            } else if (event.key === "a" && playerPosition.x > 0) {
+                playerPosition.x--;
+            } else if (event.key === "d" && playerPosition.x < 19) {
+                playerPosition.x++;
+            }
+
+            player.style.top = `${playerPosition.y * gridSize}px`;
+            player.style.left = `${playerPosition.x * gridSize}px`;
+        }
+
+        // Ruchy zombie
+        function moveZombies() {
+            zombies.forEach(zombie => {
+                const zombieX = parseInt(zombie.dataset.x);
+                const zombieY = parseInt(zombie.dataset.y);
+                const playerX = playerPosition.x;
+                const playerY = playerPosition.y;
+
+                if (zombie.dataset.hp > 0) {
+                    // Poruszanie zombie w stronę gracza
+                    if (zombieX < playerX) zombie.dataset.x = zombieX + 1;
+                    else if (zombieX > playerX) zombie.dataset.x = zombieX - 1;
+
+                    if (zombieY < playerY) zombie.dataset.y = zombieY + 1;
+                    else if (zombieY > playerY) zombie.dataset.y = zombieY - 1;
+
+                    // Przemieszczanie zombie na planszy
+                    zombie.style.top = `${zombie.dataset.y * gridSize}px`;
+                    zombie.style.left = `${zombie.dataset.x * gridSize}px`;
+                }
+            });
+        }
+
+        // Funkcja do zadawania obrażeń zombie
+        function damageZombie(zombie) {
+            if (zombie.dataset.hp > 0) {
+                zombie.dataset.hp--;
+                if (zombie.dataset.hp <= 0) {
+                    zombie.style.opacity = 0;
+                }
+            }
+        }
+
+        // Funkcja obsługująca kliknięcie Q do niszczenia
+        window.addEventListener("keydown", function (event) {
+            if (event.key === "q") {
+                // Niszczenie w pobliżu
+                destroyObjectNearby();
+                zombies.forEach(zombie => {
+                    const zombieX = parseInt(zombie.dataset.x);
+                    const zombieY = parseInt(zombie.dataset.y);
+                    const playerX = playerPosition.x;
+                    const playerY = playerPosition.y;
+
+                    // Zadajemy obrażenia zombie w pobliżu
+                    if (Math.abs(zombieX - playerX) <= 1 && Math.abs(zombieY - playerY) <= 1) {
+                        damageZombie(zombie);
+                    }
+                });
+            }
+        });
+
+        // Niszczenie obiektów w pobliżu gracza
         function destroyObjectNearby() {
-            // Drzewa
             const trees = document.querySelectorAll(".tree");
             trees.forEach(tree => {
                 if (Math.abs(playerPosition.x - tree.dataset.x) <= 1 && Math.abs(playerPosition.y - tree.dataset.y) <= 1) {
@@ -347,71 +408,14 @@
             });
         }
 
-        // Funkcja do poruszania gracza (WSAD)
-        function movePlayer(event) {
-            if (event.key === "w" && playerPosition.y > 0) {
-                playerPosition.y--;
-            } else if (event.key === "s" && playerPosition.y < 19) {
-                playerPosition.y++;
-            } else if (event.key === "a" && playerPosition.x > 0) {
-                playerPosition.x--;
-            } else if (event.key === "d" && playerPosition.x < 19) {
-                playerPosition.x++;
-            }
-
-            // Przemieszczenie gracza
-            player.style.top = `${playerPosition.y * gridSize}px`;
-            player.style.left = `${playerPosition.x * gridSize}px`;
-        }
-
-        // Ruchy zombie
-        function moveZombies() {
-            zombies.forEach(zombie => {
-                const zombieX = parseInt(zombie.dataset.x);
-                const zombieY = parseInt(zombie.dataset.y);
-
-                const playerX = playerPosition.x;
-                const playerY = playerPosition.y;
-
-                if (zombie.dataset.hp > 0) {
-                    // Poruszanie w stronę gracza
-                    if (zombieX < playerX) zombie.dataset.x = zombieX + 1;
-                    else if (zombieX > playerX) zombie.dataset.x = zombieX - 1;
-
-                    if (zombieY < playerY) zombie.dataset.y = zombieY + 1;
-                    else if (zombieY > playerY) zombie.dataset.y = zombieY - 1;
-
-                    // Przemieszczanie zombie na planszy
-                    zombie.style.top = `${zombie.dataset.y * gridSize}px`;
-                    zombie.style.left = `${zombie.dataset.x * gridSize}px`;
-                }
-            });
-        }
-
-        // Aktualizacja paska zdrowia
-        function updateHealthBar() {
-            const healthPercent = (playerHealth / 10) * 100;
-            healthFill.style.width = `${healthPercent}%`;
-        }
-
-        // Obsługuje kliknięcie Q do niszczenia
-        window.addEventListener("keydown", function (event) {
-            if (event.key === "q") {
-                destroyObjectNearby();
-            }
-        });
-
-        // Ruchy gracza
+        // Ruchy gracza (WSAD)
         window.addEventListener("keydown", movePlayer);
 
-        // Generowanie obiektów
+        // Spawnowanie obiektów
         generateObjects();
 
         // Ruchy zombie co 1 sekundę
         setInterval(moveZombies, 1000);
-
-        // Aktualizacja paska zdrowia
-        setInterval(updateHealthBar, 100);
     </script>
 </body>
 </html>
