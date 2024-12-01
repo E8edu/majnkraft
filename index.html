@@ -97,12 +97,31 @@
         #player {
             width: 18px;
             height: 18px;
-            background-color: #ff5c5c; /* Czerwony kolor gracza */
-            border-radius: 50%;
+            background-image: url('https://static.planetminecraft.com/files/image/minecraft/texture-pack/2022/592/16023477-pack_l.webp'); /* Tekstura gracza */
+            background-size: cover;
             position: absolute;
             top: 0;
             left: 0;
             transition: top 0.1s, left 0.1s;
+        }
+
+        /* Pasek zdrowia gracza */
+        #health-bar {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background-color: #2e3440;
+            border-radius: 5px;
+            border: 1px solid #4c566a;
+        }
+
+        #health-fill {
+            height: 100%;
+            background-color: #ff5c5c;
+            width: 100%;
+            border-radius: 5px;
         }
 
         /* Ekwipunek */
@@ -177,6 +196,11 @@
             <h1>Local Game</h1>
         </header>
 
+        <!-- Pasek zdrowia -->
+        <div id="health-bar">
+            <div id="health-fill"></div>
+        </div>
+
         <!-- Game Board -->
         <div id="game-board">
             <div id="player"></div>
@@ -213,6 +237,9 @@
         // Pobieranie elementu gracza
         const player = document.getElementById("player");
 
+        // Pasek zdrowia
+        const healthFill = document.getElementById("health-fill");
+
         // Plansza
         const gameBoard = document.getElementById("game-board");
 
@@ -234,45 +261,35 @@
                 for (let y = 0; y < 20; y++) {
                     const ground = document.createElement("div");
                     ground.classList.add("ground");
+                    ground.dataset.x = x;
+                    ground.dataset.y = y;
+
                     ground.style.top = `${y * gridSize}px`;
                     ground.style.left = `${x * gridSize}px`;
+
                     gameBoard.appendChild(ground);
                 }
             }
 
-            // Dodanie drzew (5 drzew)
-            for (let i = 0; i < 5; i++) {
-                const x = Math.floor(Math.random() * 20);
-                const y = Math.floor(Math.random() * 20);
+            // Tworzenie drzewa
+            const tree = document.createElement("div");
+            tree.classList.add("tree");
+            tree.dataset.x = 5;
+            tree.dataset.y = 5;
+            tree.dataset.clicks = 3;
+            tree.style.top = `${5 * gridSize}px`;
+            tree.style.left = `${5 * gridSize}px`;
+            gameBoard.appendChild(tree);
 
-                const tree = document.createElement("div");
-                tree.classList.add("tree");
-                tree.dataset.x = x;
-                tree.dataset.y = y;
-                tree.dataset.clicks = 3; // Liczba kliknięć do zniszczenia
-
-                tree.style.top = `${y * gridSize}px`;
-                tree.style.left = `${x * gridSize}px`;
-
-                gameBoard.appendChild(tree);
-            }
-
-            // Dodanie kamieni (5 kamieni)
-            for (let i = 0; i < 5; i++) {
-                const x = Math.floor(Math.random() * 20);
-                const y = Math.floor(Math.random() * 20);
-
-                const stone = document.createElement("div");
-                stone.classList.add("stone");
-                stone.dataset.x = x;
-                stone.dataset.y = y;
-                stone.dataset.clicks = 5; // Liczba kliknięć do zniszczenia
-
-                stone.style.top = `${y * gridSize}px`;
-                stone.style.left = `${x * gridSize}px`;
-
-                gameBoard.appendChild(stone);
-            }
+            // Tworzenie kamienia
+            const stone = document.createElement("div");
+            stone.classList.add("stone");
+            stone.dataset.x = 10;
+            stone.dataset.y = 10;
+            stone.dataset.clicks = 5;
+            stone.style.top = `${10 * gridSize}px`;
+            stone.style.left = `${10 * gridSize}px`;
+            gameBoard.appendChild(stone);
 
             // Tworzenie pierwszego zombie
             spawnZombie();
@@ -297,40 +314,7 @@
             gameBoard.appendChild(zombie);
         }
 
-        // Ruchy gracza (WSAD)
-        function movePlayer(event) {
-            if (event.key === "w" && playerPosition.y > 0) {
-                playerPosition.y--;
-            } else if (event.key === "s" && playerPosition.y < 19) {
-                playerPosition.y++;
-            } else if (event.key === "a" && playerPosition.x > 0) {
-                playerPosition.x--;
-            } else if (event.key === "d" && playerPosition.x < 19) {
-                playerPosition.x++;
-            }
-
-            // Przemieszczenie gracza
-            player.style.top = `${playerPosition.y * gridSize}px`;
-            player.style.left = `${playerPosition.x * gridSize}px`;
-        }
-
-        // Ruch gracza (dotykowy)
-        function movePlayerTouch(id) {
-            if (id === 'up' && playerPosition.y > 0) {
-                playerPosition.y--;
-            } else if (id === 'down' && playerPosition.y < 19) {
-                playerPosition.y++;
-            } else if (id === 'left' && playerPosition.x > 0) {
-                playerPosition.x--;
-            } else if (id === 'right' && playerPosition.x < 19) {
-                playerPosition.x++;
-            }
-
-            player.style.top = `${playerPosition.y * gridSize}px`;
-            player.style.left = `${playerPosition.x * gridSize}px`;
-        }
-
-        // Zniszczenie obiektów w pobliżu (np. drzewa, kamienie)
+        // Funkcja niszczenia obiektów
         function destroyObjectNearby() {
             // Drzewa
             const trees = document.querySelectorAll(".tree");
@@ -363,6 +347,23 @@
             });
         }
 
+        // Funkcja do poruszania gracza (WSAD)
+        function movePlayer(event) {
+            if (event.key === "w" && playerPosition.y > 0) {
+                playerPosition.y--;
+            } else if (event.key === "s" && playerPosition.y < 19) {
+                playerPosition.y++;
+            } else if (event.key === "a" && playerPosition.x > 0) {
+                playerPosition.x--;
+            } else if (event.key === "d" && playerPosition.x < 19) {
+                playerPosition.x++;
+            }
+
+            // Przemieszczenie gracza
+            player.style.top = `${playerPosition.y * gridSize}px`;
+            player.style.left = `${playerPosition.x * gridSize}px`;
+        }
+
         // Ruchy zombie
         function moveZombies() {
             zombies.forEach(zombie => {
@@ -387,6 +388,12 @@
             });
         }
 
+        // Aktualizacja paska zdrowia
+        function updateHealthBar() {
+            const healthPercent = (playerHealth / 10) * 100;
+            healthFill.style.width = `${healthPercent}%`;
+        }
+
         // Obsługuje kliknięcie Q do niszczenia
         window.addEventListener("keydown", function (event) {
             if (event.key === "q") {
@@ -403,6 +410,8 @@
         // Ruchy zombie co 1 sekundę
         setInterval(moveZombies, 1000);
 
+        // Aktualizacja paska zdrowia
+        setInterval(updateHealthBar, 100);
     </script>
 </body>
 </html>
